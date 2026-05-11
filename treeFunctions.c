@@ -62,6 +62,13 @@ int addFileToRefList(TRefList *dest, TFilePtr associatedCell)
         prevp = p;
         p = p->next;
     }
+
+    if (p != NULL && strcmp(aux->ref->ID, p->ref->ID) == 0) {
+        free(aux);
+        return 0;
+    }
+    
+
     aux->next = p;
     if (prevp != NULL) {
         prevp->next = aux;
@@ -163,6 +170,11 @@ TFilePtr createFile(char *id, int score, TKWList keywords)
 
 int addKeywordToTKList(TKWList *dest, char *keyword)
 {
+    for (TKWList p =  *dest; p != NULL; p = p->next) {
+        if (strcmp(p->keyword, keyword) == 0) {
+            return 0;
+        }
+    }
     TKWList aux = (TKWList)malloc(sizeof(TKWCell));
     if (!aux) {
         perror("ADD_KEYWORD_TO_TKLIST: Failed to create keyword object!\n");
@@ -214,7 +226,9 @@ int addCommand(FILE *input, FILE *output, TFileList *fileList, Tree root)
             emptyTKWList(&keywords);
             return 0;
         }
-        addKeywordToTKList(&keywords, keyword);
+        if (!addKeywordToTKList(&keywords, keyword)) {
+            free(keyword);
+        }
     }
     newFile = createFile(ID, score, keywords);
     if (!newFile) {
@@ -408,8 +422,10 @@ int addKWToFile(Tree root, TFileList *dest, char *id, char *keyword)
     if (i == NULL) {
         return 0;
     }
-    addKeywordToTKList(&i->keywords, keyword);
-    addKeywordToTree(root, keyword, i);
+    if (addKeywordToTKList(&i->keywords, keyword)) {
+        addKeywordToTree(root, keyword, i);
+    }
+    
     return 1;
 }
 
