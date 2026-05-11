@@ -425,7 +425,7 @@ int addKWToFile(Tree root, TFileList *dest, char *id, char *keyword)
     if (addKeywordToTKList(&i->keywords, keyword)) {
         addKeywordToTree(root, keyword, i);
     }
-    
+
     return 1;
 }
 
@@ -507,6 +507,11 @@ void findCommand(FILE *input, FILE *output, Tree root)
     int filesNmb;
     TRefList list;
     find(&filesNmb, &list, root, keyword);
+    if (!filesNmb) {
+        fprintf(output, "EMPTY\n");
+        free(keyword);
+        return;
+    }
     fprintf(output, "%d", filesNmb);
     for (int i = 0; i < filesNmb; i++)
     {
@@ -519,7 +524,7 @@ void findCommand(FILE *input, FILE *output, Tree root)
 
 void commandLine(FILE *input, FILE *output, TFileList *fileList, Tree *root)
 {
-    char *command;
+    char *command, c;
     int n;
     fscanf(input, " %d", &n);
     for (int i = 0; i < n; i++) {
@@ -543,7 +548,8 @@ void commandLine(FILE *input, FILE *output, TFileList *fileList, Tree *root)
         } else if (!strcmp(command, "TOPK")) {
             topkCommand(input, output, *root);
         } else {
-            fprintf(output, "Invalid command");
+            fprintf(output, "Invalid command\n");
+            while ((c = fgetc(input)) != '\n' && c != EOF);
         }
         free(command);
     }
@@ -642,6 +648,7 @@ void printTree(FILE *output, Tree root, char *word, int wordOffset)
 
 void printCommand(FILE *output, Tree root)
 {
+    int printed = 0;
     //allocate memory for a 101 word, the maximum length according to the task
     char *buffer = malloc(101 * sizeof(char));
     if (!buffer) {
@@ -649,7 +656,11 @@ void printCommand(FILE *output, Tree root)
         return;
     }
     for (Tree i = root->child; i != NULL; i = i->next) {
+        printed = 1;
         printTree(output, i, buffer, 0);
+    }
+    if (!printed) {
+        fprintf(output, "EMPTY\n");
     }
     free(buffer);
 }
@@ -705,7 +716,7 @@ void siftHeap(TRefCell *heap, int i, int heapSize)
     }
     
     if (largest != i) {
-        TRefCell aux = heap[largest];
+        TRefCell aux = heap[i];
         heap[i] = heap[largest];
         heap[largest] = aux;
         siftHeap(heap, largest, heapSize);
@@ -728,10 +739,10 @@ void topkCommand(FILE *input, FILE *output, Tree root)
         return;
     }
     TRefCell *heap = maxHeapify(list);
-    fprintf(output, "%d", heapSize);
     if (k > heapSize) {
         k = heapSize;
     }
+    fprintf(output, "%d", k);
     
     for (int i = 0; i < k; i++) {
         fprintf(output, " %s", heap[0].ref->ID);
