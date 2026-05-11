@@ -1,6 +1,6 @@
 build:
-	gcc -Wall -Wextra main.c treeFunctions.c -o tema2
+	gcc -Wall -Wextra main.c treeFunctions.c -o search_index
 run:
-	./tema2
+	./search_index
 clean:
-	rm tema2
+	rm search_index

@@ -185,7 +185,7 @@ int checkFileExists(TFileList *fileList, char *fileName)
     return 0;
 }
 
-int addCommand(TFileList *fileList, Tree root)
+int addCommand(FILE *input, FILE *output, TFileList *fileList, Tree root)
 {
     int c;
     TFilePtr newFile;
@@ -193,21 +193,21 @@ int addCommand(TFileList *fileList, Tree root)
     int score, KWCount;
     TKWList keywords = NULL;
 
-    ID = getFileWord(stdin);
+    ID = getFileWord(input);
     if (!ID) {
         return 0; //Empty input
     }
     
     if (checkFileExists(fileList, ID)) {
-        printf("EXISTS\n");
+        fprintf(output ,"EXISTS\n");
         free(ID);
         //consume the rest of the line, no point in reading it
-        while ((c = getchar()) != '\n' && c != EOF);
+        while ((c = fgetc(input)) != '\n' && c != EOF);
         return 1;
     }
-    scanf(" %d %d", &score, &KWCount);
+    fscanf(input, " %d %d", &score, &KWCount);
     for (int i = 0; i < KWCount; i++) {
-        keyword = getFileWord(stdin);
+        keyword = getFileWord(input);
         if (!keyword){
             perror("ADD_COMMAND: Failed to allocate keyword memory!\n");
             free(ID);
@@ -232,7 +232,7 @@ int addCommand(TFileList *fileList, Tree root)
         }
     }
     
-    printf("OK\n");
+    fprintf(output ,"OK\n");
     return 1;
 }
 
@@ -480,9 +480,9 @@ int getRefListCount(TRefList list)
     return counter;
 }
 
-void findCommand(Tree root)
+void findCommand(FILE *input, FILE *output, Tree root)
 {
-    char *keyword = getFileWord(stdin);
+    char *keyword = getFileWord(input);
     if (!keyword){
         perror("FIND_COMMAND: Failed to get user input!\n");
         return;
@@ -491,67 +491,67 @@ void findCommand(Tree root)
     int filesNmb;
     TRefList list;
     find(&filesNmb, &list, root, keyword);
-    printf("%d", filesNmb);
+    fprintf(output, "%d", filesNmb);
     for (int i = 0; i < filesNmb; i++)
     {
-        printf(" %s", list->ref->ID);
+        fprintf(output, " %s", list->ref->ID);
         list = list->next;
     }
-    printf("\n");
+    fprintf(output ,"\n");
     free(keyword);
 }
 
-void commandLine(TFileList *fileList, Tree *root)
+void commandLine(FILE *input, FILE *output, TFileList *fileList, Tree *root)
 {
     char *command;
     int n;
-    scanf(" %d", &n);
+    fscanf(input, " %d", &n);
     for (int i = 0; i < n; i++) {
-        command = getFileWord(stdin);
+        command = getFileWord(input);
         if (command == NULL) {
             break;
         }
         
         if (!strcmp(command, "ADD")) {
-            addCommand(fileList, *root);
+            addCommand(input, output, fileList, *root);
         } else if (!strcmp(command, "DEL")) {
-            delCommand(*root, fileList);
+            delCommand(input, output, *root, fileList);
         } else if (!strcmp(command, "ADDKW")) {
-            addkwCommand(*root, fileList);
+            addkwCommand(input, output, *root, fileList);
         } else if (!strcmp(command, "DELKW")) {
-            delkwCommand(*root, fileList);
+            delkwCommand(input, output, *root, fileList);
         } else if (!strcmp(command, "FIND")) {
-            findCommand(*root);
+            findCommand(input, output, *root);
         } else if (!strcmp(command, "PRINT")) {
-            printCommand(*root);
+            printCommand(output, *root);
         } else if (!strcmp(command, "TOPK")) {
-            topkCommand(*root);
+            topkCommand(input, output, *root);
         } else {
-            printf("Invalid command");
+            fprintf(output, "Invalid command");
         }
         free(command);
     }
 }
 
-int delCommand(Tree root, TFileList *src)
+int delCommand(FILE *input, FILE *output, Tree root, TFileList *src)
 {
-    char *id = getFileWord(stdin);
+    char *id = getFileWord(input);
     if (!id) return 0;
     
     if (!delFileFromFileList(root, src, id)) {
-        printf("NOT FOUND\n");
+        fprintf(output, "NOT FOUND\n");
         free(id);
         return 0;
     }
-    printf("OK\n");
+    fprintf(output, "OK\n");
     free(id);
     return 1;
 }
 
-int addkwCommand(Tree root, TFileList *dest)
+int addkwCommand(FILE *input, FILE *output, Tree root, TFileList *dest)
 {
-    char *id = getFileWord(stdin);
-    char *keyword = getFileWord(stdin);
+    char *id = getFileWord(input);
+    char *keyword = getFileWord(input);
     if (!keyword)
     {
         if (!id) {
@@ -564,18 +564,18 @@ int addkwCommand(Tree root, TFileList *dest)
     if(!addKWToFile(root, dest, id, keyword)) {
         free(id);
         free(keyword);
-        printf("NOT FOUND\n");
+        fprintf(output, "NOT FOUND\n");
         return 0;
     }
     free(id);
-    printf("OK\n");
+    fprintf(output, "OK\n");
     return 1;
 }
 
-int delkwCommand(Tree root, TFileList *src)
+int delkwCommand(FILE *input, FILE *output, Tree root, TFileList *src)
 {
-    char *id = getFileWord(stdin);
-    char *keyword = getFileWord(stdin);
+    char *id = getFileWord(input);
+    char *keyword = getFileWord(input);
     if (!keyword)
     {
         if (!id) {
@@ -585,26 +585,26 @@ int delkwCommand(Tree root, TFileList *src)
         return 0;
     }
     if (!delKWFromFile(root, src, id, keyword)) {
-        printf("NOT FOUND\n");
+        fprintf(output, "NOT FOUND\n");
         free(id);
         free(keyword);
         return 0;
     }
     free(id);
     free(keyword);
-    printf("OK\n");
+    fprintf(output, "OK\n");
     return 1;
 }
 
-void printRefList(TRefList list)
+void printRefList(FILE *output, TRefList list)
 {
     while(list) {
-        printf(" %s", list->ref->ID);
+        fprintf(output, " %s", list->ref->ID);
         list = list->next;
     }
 }
 
-void printTree(Tree root, char *word, int wordOffset)
+void printTree(FILE *output, Tree root, char *word, int wordOffset)
 {
     if (!root) {
         return;
@@ -614,17 +614,17 @@ void printTree(Tree root, char *word, int wordOffset)
     word[wordOffset] = root->c;
     if (root->fileRefList) {
         word[wordOffset + 1] = '\0';
-        printf("%s %d", word, getRefListCount(root->fileRefList));
-        printRefList(root->fileRefList);
-        printf("\n");
+        fprintf(output, "%s %d", word, getRefListCount(root->fileRefList));
+        printRefList(output, root->fileRefList);
+        fprintf(output, "\n");
     }
 
     for (Tree i = root->child; i != NULL; i = i->next) {
-        printTree(i, word, wordOffset + 1);
+        printTree(output, i, word, wordOffset + 1);
     }
 }
 
-void printCommand(Tree root)
+void printCommand(FILE *output, Tree root)
 {
     //allocate memory for a 101 word, the maximum length according to the task
     char *buffer = malloc(101 * sizeof(char));
@@ -633,7 +633,7 @@ void printCommand(Tree root)
         return;
     }
     for (Tree i = root->child; i != NULL; i = i->next) {
-        printTree(i, buffer, 0);
+        printTree(output, i, buffer, 0);
     }
     free(buffer);
 }
@@ -679,12 +679,12 @@ void siftHeap(TRefCell *heap, int i, int heapSize)
     int right = left + 1;
 
     if (left < heapSize && (heap[left].ref->score > heap[largest].ref->score ||
-        (heap[left].ref->score > heap[largest].ref->score && strcmp(heap[left].ref->ID, heap[largest].ref->ID) < 0))) {
+        (heap[left].ref->score == heap[largest].ref->score && strcmp(heap[left].ref->ID, heap[largest].ref->ID) < 0))) {
         largest = left;
     }
 
     if (right < heapSize && (heap[right].ref->score > heap[largest].ref->score ||
-        (heap[right].ref->score > heap[largest].ref->score && strcmp(heap[right].ref->ID, heap[largest].ref->ID) < 0))) {
+        (heap[right].ref->score == heap[largest].ref->score && strcmp(heap[right].ref->ID, heap[largest].ref->ID) < 0))) {
         largest = right;
     }
     
@@ -696,32 +696,53 @@ void siftHeap(TRefCell *heap, int i, int heapSize)
     }
 }
 
-void topkCommand(Tree root)
+void topkCommand(FILE *input, FILE *output, Tree root)
 {
     TRefList list;
     int k, heapSize;
-    char *keyword = getFileWord(stdin);
+    char *keyword = getFileWord(input);
     if (!keyword) {
         return;
     }
     
-    scanf(" %d", &k);
+    fscanf(input, " %d", &k);
     find(&heapSize, &list, root, keyword);
     if (heapSize == 0) {
-        printf("EMPTY\n");
+        fprintf(output, "EMPTY\n");
         return;
     }
     TRefCell *heap = maxHeapify(list);
-    printf("%d", heapSize);
+    fprintf(output, "%d", heapSize);
     if (k > heapSize) {
         k = heapSize;
     }
     
     for (int i = 0; i < k; i++) {
-        printf(" %s", heap[0].ref->ID);
+        fprintf(output, " %s", heap[0].ref->ID);
         heap[0] = heap[--heapSize];
         siftHeap(heap, 0, heapSize);
     }
-    printf("\n");
+    fprintf(output, "\n");
     free(heap);
+    free(keyword);
+}
+
+void emptyTree(Tree root)
+{
+    if (!root) {
+        return;
+    }
+    Tree j;
+    for (Tree i = root->child; i != NULL; i = j) {
+        j = i->next;
+        emptyTree(i);
+    }
+    TRefList ref = root->fileRefList;
+    while (ref) {
+        TRefList nextRef = ref->next;
+        free(ref);
+        ref = nextRef;
+    }
+    
+    free(root);
 }

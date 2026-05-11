@@ -15,7 +15,7 @@ int addKeywordToTKList(TKWList *dest, char *keyword);
 
 int checkFileExists(TFileList *fileList, char *fileName);
 
-int addCommand(TFileList *fileList, Tree root);
+int addCommand(FILE *input, FILE *output, TFileList *fileList, Tree root);
 
 void emptyTKWList(TKWList *list);
 
@@ -35,26 +35,26 @@ void find(int *returnValue, TRefList *list, Tree root, char *keyword);
 
 int getRefListCount(TRefList list);
 
-void findCommand(Tree root);
+void findCommand(FILE *input, FILE *output, Tree root);
 
-void commandLine(TFileList *fileList, Tree *root);
+void commandLine(FILE *input, FILE *output, TFileList *fileList, Tree *root);
 
-int delCommand(Tree root, TFileList *src);
+int delCommand(FILE *input, FILE *output, Tree root, TFileList *src);
 
-int addkwCommand(Tree root, TFileList *dest);
+int addkwCommand(FILE *input, FILE *output, Tree root, TFileList *dest);
 
-int delkwCommand(Tree root, TFileList *src);
+int delkwCommand(FILE *input, FILE *output, Tree root, TFileList *src);
 
-void printCommand(Tree root);
+void printTree(FILE *input, Tree root, char *word, int wordOffset);
 
-void printTree(Tree root, char *word, int wordOffset);
-
-void printCommand(Tree root);
+void printCommand(FILE *output, Tree root);
 
 TRefCell *maxHeapify(TRefList list);
 
 void insertHeap(TRefCell *heap, TRefCell value, int pos);
 
-void topkCommand(Tree root);
+void topkCommand(FILE *input, FILE *output, Tree root);
+
+void emptyTree(Tree root);
 
 #endif
