@@ -1,3 +1,4 @@
+//CHELES Giorgio - 312CB
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
