@@ -18,15 +18,16 @@ typedef struct fileCell{
     struct fileCell *next, *prev;
 } TFileCell, *TFilePtr;
 
+typedef struct fileList{
+    TFilePtr head;
+    TFilePtr tail;
+} TFileList;
+
 typedef struct cell2{
     TFilePtr ref;
     struct cell2 *next;
 } TRefCell, *TRefList;
 
-typedef struct fileList{
-    TFilePtr head;
-    TFilePtr tail;
-} TFileList;
 
 typedef struct node {
     char c;

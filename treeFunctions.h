@@ -3,6 +3,8 @@
 
 #include "structs.h"
 
+char *getFileWord(FILE *src);
+
 int addFileToRefList(TRefList *dest, TFilePtr associatedCell);
 
 int addKeywordToTree(Tree dest, char *keyword, TFilePtr associatedFile);
@@ -52,6 +54,8 @@ void printCommand(FILE *output, Tree root);
 TRefCell *maxHeapify(TRefList list);
 
 void insertHeap(TRefCell *heap, TRefCell value, int pos);
+
+void siftHeap(TRefCell *heap, int i, int heapSize);
 
 void topkCommand(FILE *input, FILE *output, Tree root);
 

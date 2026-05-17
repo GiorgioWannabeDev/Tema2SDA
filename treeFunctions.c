@@ -58,17 +58,18 @@ int addFileToRefList(TRefList *dest, TFilePtr associatedCell)
 
     TRefList p, prevp = NULL;
     p = (*dest);
+    // Find new cell's place in the list
     while(p != NULL && strcmp(aux->ref->ID, p->ref->ID) > 0) {
         prevp = p;
         p = p->next;
     }
-
+    // Check if its already there
     if (p != NULL && strcmp(aux->ref->ID, p->ref->ID) == 0) {
         free(aux);
         return 0;
     }
     
-
+    //If we found the correct place, we insert it there
     aux->next = p;
     if (prevp != NULL) {
         prevp->next = aux;
@@ -280,33 +281,43 @@ void emptyFileList(TFileList *list)
 
 int delKeywordFromTree(Tree dest, char *keyword)
 {
+    //Node is null, return 0
     if (dest == NULL){
         return 0;
     }
     Tree node, prevNode = NULL, nextNode;
+    //Search for the current character
     for (node = dest->child; node != NULL; prevNode = node, node = node->next) {
         if (node->c == keyword[0]) {
             break;
         }
     }
+    //If character not found, return 0
     if (node == NULL) {
         return 0;
     }
     nextNode = node->next;
+    //If this is the last character, we are going to need to start returning
     if (keyword[1] == '\0') {
+        //If there are no descendants
         if (node->child == NULL) {
+            //If this node has no siblings
             if (prevNode == NULL) {
                 dest->child = nextNode;
-            } else {
+            } else { // If it does have siblings
                 prevNode->next = nextNode;
             }
             free(node);
-            return 1;
+            return 1; // Signal that we can start deleting
         } else {
-            return 0;
+            return 0; // Signal that the node is in use by other keyword, thus we cant delete
         }
     } else {
+        //Recursively call the function for the next character
         int deleted = delKeywordFromTree(node, keyword + 1);
+        /*If: we received the signal that we can continue deleting,
+        the node has no descendants left and also no file references
+        we continue deletion, otherwise we stop and start returning 0es*/
         if (deleted && node->child == NULL && node->fileRefList == NULL) {
             if (prevNode == NULL) {
                 dest->child = nextNode;
@@ -438,7 +449,7 @@ int delKWFromFile(Tree root, TFileList *dest, char *id, char *keyword)
         }
     }
     if (i == NULL) {
-        return 0;
+        return 0; //No such file
     }
     TKWList p, prevp = NULL;
     for (p = i->keywords; p != NULL; prevp = p, p = p->next) {
